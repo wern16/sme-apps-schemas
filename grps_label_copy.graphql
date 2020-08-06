@@ -356,7 +356,7 @@ Search across for GRPS specific Participants, and if referenced, delegate to RDX
 4. A reference to a Spotify Participant field on the external Participant causes the federation to delegate to SPOT_Participant field
 5. The result is a GRPS Participant with a collection of external linked Participants
 """
-findGRPSParticipantByName(limit: Int, offset: Int, squery: String!): [GRPS_Participant!]
+findGRPSParticipantByName(limit: Int, offset: Int, query: String!): [GRPS_Participant!]
 }
 schema{
 query: Query
