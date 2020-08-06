@@ -1,5 +1,3 @@
-# sme-apps-schemas
-A repository to store all public schema, API contracts and supporting documentation.
 # Schema Types
 
 <details>
@@ -19,6 +17,7 @@ A repository to store all public schema, API contracts and supporting documentat
     * [GRPS_ParticipantType](#grps_participanttype)
     * [GRPS_PartyGeneralInfo](#grps_partygeneralinfo)
     * [GRPS_PartyName](#grps_partyname)
+    * [Participant](#participant)
   * [Enums](#enums)
     * [DataSource](#datasource)
     * [ImageUsageType](#imageusagetype)
@@ -34,7 +33,7 @@ A repository to store all public schema, API contracts and supporting documentat
 
 </details>
 
-## Query (query)
+## Query
 <table>
 <thead>
 <tr>
@@ -61,7 +60,17 @@ Search across for GRPS specific Participants, and if referenced, delegate to RDX
 </td>
 </tr>
 <tr>
-<td colspan="2" align="right" valign="top">qyery</td>
+<td colspan="2" align="right" valign="top">limit</td>
+<td valign="top"><a href="#int">Int</a></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">offset</td>
+<td valign="top"><a href="#int">Int</a></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">query</td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td></td>
 </tr>
@@ -367,6 +376,7 @@ or a member in a members relationhip.
 ### GRPS_Participant
 
 Individual, Band Artists, Participants
+@ToDo - Add Rep Owner, Participant Main Artist relations, and Participant Credits
 
 <table>
 <thead>
@@ -397,6 +407,15 @@ A moniker identifying the source for this instance of a Participant
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>extParticipants</strong></td>
+<td valign="top">[<a href="#participant">Participant</a>!]</td>
+<td>
+
+A collection of linked, external Participant Entities
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>name</strong></td>
 <td valign="top"><a href="#grps_partyname">GRPS_PartyName</a>!</td>
 <td>
@@ -419,9 +438,9 @@ A collection of localized names for the primary name of Participant
 <td valign="top">[<a href="#grps_partyname">GRPS_PartyName</a>!]</td>
 <td>
 
-A collection of also known as names for the Participant (e.g. 
-'Beyonce' is also known as 'Queen B', 'Bruce Springsteen' is 
-also known as 'The Boss').  This collection may include 
+A collection of also known as names for the Participant (e.g.
+'Beyonce' is also known as 'Queen B', 'Bruce Springsteen' is
+also known as 'The Boss').  This collection may include
 the Legal Name for the Participant
 
 </td>
@@ -431,8 +450,8 @@ the Legal Name for the Participant
 <td valign="top"><a href="#grps_participanttype">GRPS_ParticipantType</a>!</td>
 <td>
 
-Defines the type of Paricipant (e.g. Person, Individual, 
-Band or Compound Artist). This is a key table for valid 
+Defines the type of Paricipant (e.g. Person, Individual,
+Band or Compound Artist). This is a key table for valid
 Participant Types
 
 </td>
@@ -469,7 +488,7 @@ Similar Artists
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-A flag indicating whether the Participant is an Organization or an 
+A flag indicating whether the Participant is an Organization or an
 Individual
 
 </td>
@@ -628,7 +647,7 @@ The nationality of the Participant
 <td valign="top">[<a href="#grps_comment">GRPS_Comment</a>!]</td>
 <td>
 
-Notes and comments regarding Participant    
+Notes and comments regarding Participant
 
 </td>
 </tr>
@@ -654,8 +673,8 @@ A fully qualified, localized party name
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The complete name of the Party in its normal 
-form of presentation (e.g. John H. SMith, Acme 
+The complete name of the Party in its normal
+form of presentation (e.g. John H. SMith, Acme
 Music Inc., The Beatles)
 
 </td>
@@ -674,8 +693,8 @@ The fullname transcribed into 7-bit ASCII characters
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The complete name of the Party in the form in which it 
-normally appears in an alphabetic indix, with 
+The complete name of the Party in the form in which it
+normally appears in an alphabetic indix, with
 the KeyName first (e.g. Smith, John H.; Beatles, The)
 
 </td>
@@ -685,9 +704,9 @@ the KeyName first (e.g. Smith, John H.; Beatles, The)
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The names (aka First Name) preceeding the KeyName in the 
-full name (e.g. 'George' in 'George Michael'; 'John 
-Fitzgerald' in 'John Fitzgerald Kennedy').  Not all Party 
+The names (aka First Name) preceeding the KeyName in the
+full name (e.g. 'George' in 'George Michael'; 'John
+Fitzgerald' in 'John Fitzgerald Kennedy').  Not all Party
 Names have a NamesBeforeKeyName (e.g. Madonna, Prince).
 
 </td>
@@ -697,8 +716,8 @@ Names have a NamesBeforeKeyName (e.g. Madonna, Prince).
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The family or surname (aka Last Name) typically used to 
-index an entry in an alphabetic list, such as 'Michael' in 
+The family or surname (aka Last Name) typically used to
+index an entry in an alphabetic list, such as 'Michael' in
 'George Michael' or 'Kennedy' in 'John Fitzgerald Kennedy'.
 
 </td>
@@ -709,8 +728,8 @@ index an entry in an alphabetic list, such as 'Michael' in
 <td>
 
 The names following the KeyName (e.g. 'Ibrahim' in 'Anwar
-Ibrahim').  This is common in many Asian personal name forms 
-where the full name begins with the KeyName, which is followed 
+Ibrahim').  This is common in many Asian personal name forms
+where the full name begins with the KeyName, which is followed
 by other names.
 
 </td>
@@ -720,8 +739,8 @@ by other names.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-Any additions to the Last and First Name such as featuring 
-artist information or duet partners    
+Any additions to the Last and First Name such as featuring
+artist information or duet partners
 
 </td>
 </tr>
@@ -730,7 +749,7 @@ artist information or duet partners
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-A short version of the Party Name for use on devices with 
+A short version of the Party Name for use on devices with
 a small display.
 
 </td>
@@ -740,9 +759,9 @@ a small display.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-Flag to indicate whether a given name is a nickname.  A 
-nickname is a substitue for the proper name (e.g. 'Pete' 
-for 'Peter').  Not to be confused with a stage name or 
+Flag to indicate whether a given name is a nickname.  A
+nickname is a substitue for the proper name (e.g. 'Pete'
+for 'Peter').  Not to be confused with a stage name or
 psyeudonym name.
 
 </td>
@@ -752,7 +771,7 @@ psyeudonym name.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-Flag to indicate whether the given name is a stage name or 
+Flag to indicate whether the given name is a stage name or
 psyeudonym name
 
 </td>
@@ -763,6 +782,50 @@ psyeudonym name
 <td>
 
 Flag to indicate whether the full name is the legal name
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### Participant
+
+Stub - Aggregate Participant Entity
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>id</strong></td>
+<td valign="top"><a href="#id">ID</a>!</td>
+<td>
+
+Universally, unique identifier for backend service Participant
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>source</strong></td>
+<td valign="top"><a href="#datasource">DataSource</a></td>
+<td>
+
+Identifies the source backend service of the Participant
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>GRPS_Participant</strong></td>
+<td valign="top"><a href="#grps_participant">GRPS_Participant</a></td>
+<td>
+
+Exend Participant to add GRPS_Participant
 
 </td>
 </tr>
