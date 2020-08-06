@@ -1,0 +1,363 @@
+"""
+Defines a calendar date
+"""
+scalar Date
+
+"""
+Defines a point in time (e.g. DateTime)
+"""
+scalar Datetime
+
+"""
+Defines a qualified URL
+"""
+scalar URL
+
+"""
+Identifies the registered backend data sources
+"""
+enum DataSource{
+    GRPS
+    CONSOLE
+    SPOTIFY
+    APPLE
+    GRACENOTE
+    MUSICBRAINZ
+    ORCHARE
+}
+
+"""
+T-Shirt Sizing for Images
+"""
+enum TSize{
+    S
+    M
+    L
+    XL
+}
+
+"""
+Image Usage Types
+"""
+enum ImageUsageType{
+    THUMBNAIL
+    COVER_ART
+    PROFILE
+}
+"""
+Stub - Aggregate Participant Entity
+"""
+type Participant {
+    """
+    Universally, unique identifier for backend service Participant
+    """
+    id: ID!
+    """
+    Identifies the source backend service of the Participant
+    """
+    source: DataSource
+    """
+    Exend Participant to add GRPS_Participant
+    """
+    GRPS_Participant: GRPS_Participant
+
+}
+
+"""
+A system-specific, unique identifier for an entity
+
+type ExtID{
+id: String!
+source: DataSource!
+}
+
+Identifies the language for localized values
+"""
+type GRPS_LangCd{
+    tag: String!
+}
+
+"""
+Identifies the valid country codes
+"""
+type GRPS_CountryCd{
+    """
+    The ISO 3166-2 2 character alpha Country Code
+    """
+    code_2: String!
+    """
+    The ISO 3166-3 3 character alpha Country Code
+    """
+    code_3: String!
+    """
+    The country name
+    """
+    name: String!
+}
+
+"""
+Localized text.
+"""
+type GRPS_LocalString{
+    text: String!
+    lang: GRPS_LangCd!
+}
+
+"""
+Type type of group membership
+"""
+type GRPS_DataSourceCd{
+    id: ID!
+    code: String!
+    title: GRPS_LocalString!
+}
+
+"""
+The Type of Artist with localized titles
+"""
+type GRPS_ParticipantType{
+    id: ID!
+    title: GRPS_LocalString!
+    eligibleMember: Boolean!
+    eligibleGroup: Boolean!
+    localTitles: [GRPS_LocalString!]
+}
+
+"""
+A fully qualified, localized party name
+"""
+type GRPS_PartyName{
+    """
+    The complete name of the Party in its normal
+    form of presentation (e.g. John H. SMith, Acme
+    Music Inc., The Beatles)
+    """
+    fullName: String!
+    """
+    The fullname transcribed into 7-bit ASCII characters
+    """
+    asciiFullName: String!
+    """
+    The complete name of the Party in the form in which it
+    normally appears in an alphabetic indix, with
+    the KeyName first (e.g. Smith, John H.; Beatles, The)
+    """
+    indexName: String!
+    """
+    The names (aka First Name) preceeding the KeyName in the
+    full name (e.g. 'George' in 'George Michael'; 'John
+    Fitzgerald' in 'John Fitzgerald Kennedy').  Not all Party
+    Names have a NamesBeforeKeyName (e.g. Madonna, Prince).
+    """
+    namesBeforeKeyName: String!
+    """
+    The family or surname (aka Last Name) typically used to
+    index an entry in an alphabetic list, such as 'Michael' in
+    'George Michael' or 'Kennedy' in 'John Fitzgerald Kennedy'.
+    """
+    keyname: String!
+    """
+    The names following the KeyName (e.g. 'Ibrahim' in 'Anwar
+    Ibrahim').  This is common in many Asian personal name forms
+    where the full name begins with the KeyName, which is followed
+    by other names.
+    """
+    namesAfterKeyname: String!
+    """
+    Any additions to the Last and First Name such as featuring
+    artist information or duet partners
+    """
+    bleed: String!
+    """
+    A short version of the Party Name for use on devices with
+    a small display.
+    """
+    abbrName: String!
+    """
+    Flag to indicate whether a given name is a nickname.  A
+    nickname is a substitue for the proper name (e.g. 'Pete'
+    for 'Peter').  Not to be confused with a stage name or
+    psyeudonym name.
+    """
+    isNickname: Boolean!
+    """
+    Flag to indicate whether the given name is a stage name or
+    psyeudonym name
+    """
+    isStageName: Boolean!
+    """
+    Flag to indicate whether the full name is the legal name
+    """
+    isLegalName: Boolean!
+}
+
+"""
+Individual, Band Artists, Participants
+@ToDo - Add Rep Owner, Participant Main Artist relations, and Participant Credits
+"""
+type GRPS_Participant{
+    """
+    The source system, unique identifier for the Participant
+    """
+    id: ID!
+    """
+    A moniker identifying the source for this instance of a Participant
+    """
+    source: DataSource!
+    """
+    A collection of linked, external Participant Entities
+    """
+    extParticipants: [Participant!]
+    """
+    The fully qualified, localized name for the Participant
+    """
+    name: GRPS_PartyName!
+    """
+    A collection of localized names for the primary name of Participant
+    """
+    localizedNames: [GRPS_PartyName!]
+    """
+    A collection of also known as names for the Participant (e.g.
+    'Beyonce' is also known as 'Queen B', 'Bruce Springsteen' is
+    also known as 'The Boss').  This collection may include
+    the Legal Name for the Participant
+    """
+    altNames: [GRPS_PartyName!]
+    """
+    Defines the type of Paricipant (e.g. Person, Individual,
+    Band or Compound Artist). This is a key table for valid
+    Participant Types
+    """
+    partType: GRPS_ParticipantType!
+    """
+    If the Participant is a member of a Band or Group
+    """
+    memberOf: [GRPS_Member!]
+    """
+    If ther Particpant is a Band, Group with Members
+    """
+    members: [GRPS_Member!]
+    """
+    Similar Artists
+    """
+    similarParticipants: [GRPS_Participant!]
+    """
+    A flag indicating whether the Participant is an Organization or an
+    Individual
+    """
+    isOrganziation: Boolean!
+    """
+    Identifies the affilation for the Participant
+    """
+    affliation: String
+    """
+    Most frequent contributor roles
+    """
+    typicalRoles: String
+    """
+    Participant images
+    """
+    images: [GRPS_Image!]
+    """
+    Related Participant Content Links
+    """
+    relatedContent: [GRPS_ContentLink!]
+}
+
+"""
+Member of Band Or Group
+"""
+type GRPS_Member{
+    """
+    Defines the type of membership for a participant
+    """
+    memberType: GRPS_DataSourceCd!
+    """
+    Identifies the parent Participant in a memberOf relation
+    or a member in a members relationhip.
+    """
+    member: GRPS_Participant!
+}
+
+"""
+General or Background information for a Party
+"""
+type GRPS_PartyGeneralInfo{
+    """
+    The Gender of the Party
+    """
+    gender: String!
+    """
+    Date of Birth
+    """
+    dateOfBirth: Date
+    """
+    Date of Death
+    """
+    dateOfDeath: Date
+    """
+    Birth Place
+    """
+    birthPlace: String
+    """
+    The country of main residency for the Participant
+    """
+    residency: GRPS_CountryCd
+    """
+    The nationality of the Participant
+    """
+    nationality: GRPS_CountryCd
+    """
+    Notes and comments regarding Participant
+    """
+    comments: [GRPS_Comment!]
+}
+
+"""
+Defines a a localized, ordered entity comment
+"""
+type GRPS_Comment{
+    seqNo: Int!
+    text: GRPS_LocalString!
+    updateDt: Datetime!
+    updateBy: String!
+}
+
+"""
+Defines a internet accessible image for use with Entities
+"""
+type GRPS_Image{
+    url: URL!
+    source: DataSource!
+    text: GRPS_LocalString
+    height: Int!
+    width: Int!
+    size: TSize!
+    usage: ImageUsageType!
+}
+
+"""
+Defines an content links for an entity
+"""
+type GRPS_ContentLink{
+    url: URL!
+    source: DataSource!
+    text: GRPS_LocalString
+    desc: GRPS_LocalString
+}
+
+type Query {
+"""
+Search across for GRPS specific Participants, and if referenced, delegate to RDX service to find external links
+1. Search for matching Participant from the GRPS backend service
+2. Return GRPS_Participant type for each matching GRPS Participant
+3. A reference to a extParticipants field causes the federation to delegate to RDX service using GRPS Participant id and source
+4. RDX service finds all external Participants (id and source) mapped to the GRPS Participant
+4. A reference to a Spotify Participant field on the external Participant causes the federation to delegate to SPOT_Participant field
+5. The result is a GRPS Participant with a collection of external linked Participants
+"""
+findGRPSParticipantByName(limit: Int, offset: Int, squery: String!): [GRPS_Participant!]
+}
+schema{
+query: Query
+}
