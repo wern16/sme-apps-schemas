@@ -114,7 +114,7 @@ type GRPS_Company {
 A Repertoire Owner
 """
 type GRPS_Repertoire_Owner {
-
+    id: ID!
 }
 
 """
