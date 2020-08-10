@@ -16,7 +16,7 @@ scalar URL
 """
 Identifies the registered backend data sources
 """
-enum DataSource{
+enum Source{
     GRPS
     CONSOLE
     SPOTIFY
@@ -24,16 +24,6 @@ enum DataSource{
     GRACENOTE
     MUSICBRAINZ
     ORCHARE
-}
-
-"""
-T-Shirt Sizing for Images
-"""
-enum TSize{
-    S
-    M
-    L
-    XL
 }
 
 """
@@ -45,6 +35,15 @@ enum ImageUsageType{
     PROFILE
 }
 """
+Participant contributor classes or task classes
+"""
+enum ContributorClass {
+    PERFORMANCE
+    COMPOSITION
+    PRODUCTION
+}
+
+"""
 Stub - Aggregate Participant Entity
 """
 type Participant {
@@ -55,26 +54,19 @@ type Participant {
     """
     Identifies the source backend service of the Participant
     """
-    source: DataSource
+    source: Source
     """
     Exend Participant to add GRPS_Participant
     """
     GRPS_Participant: GRPS_Participant
-
 }
 
 """
-A system-specific, unique identifier for an entity
-
-type ExtID{
-id: String!
-source: DataSource!
-}
-
 Identifies the language for localized values
 """
-type GRPS_LangCd{
-    tag: String!
+type GRPS_LanguageCd{
+    script: String!
+    language: String!
 }
 
 """
@@ -100,7 +92,7 @@ Localized text.
 """
 type GRPS_LocalString{
     text: String!
-    lang: GRPS_LangCd!
+    language: GRPS_LanguageCd!
 }
 
 """
@@ -111,16 +103,32 @@ type GRPS_DataSourceCd{
     code: String!
     title: GRPS_LocalString!
 }
+"""
+A Company associated with the Participant, Project, Product.
+"""
+type GRPS_Company {
+    id: ID!
+}
+
+"""
+A Repertoire Owner
+"""
+type GRPS_Repertoire_Owner {
+
+}
 
 """
 The Type of Artist with localized titles
 """
-type GRPS_ParticipantType{
+type GRPS_ParticipantType {
     id: ID!
     title: GRPS_LocalString!
     eligibleMember: Boolean!
     eligibleGroup: Boolean!
-    localTitles: [GRPS_LocalString!]
+    """
+    Defines a further classification of the type of Participant
+    """
+    participantSubTypes: [GRPS_LocalString!]
 }
 
 """
@@ -139,7 +147,7 @@ type GRPS_PartyName{
     asciiFullName: String!
     """
     The complete name of the Party in the form in which it
-    normally appears in an alphabetic indix, with
+    normally appears in an alphabetic index, with
     the KeyName first (e.g. Smith, John H.; Beatles, The)
     """
     indexName: String!
@@ -174,21 +182,44 @@ type GRPS_PartyName{
     """
     abbrName: String!
     """
-    Flag to indicate whether a given name is a nickname.  A
-    nickname is a substitue for the proper name (e.g. 'Pete'
-    for 'Peter').  Not to be confused with a stage name or
-    psyeudonym name.
+    The local language context for name
     """
-    isNickname: Boolean!
+    language: GRPS_LanguageCd
+}
+"""
+Identifies the local Participant id and name
+"""
+type GRPS_Local_Participant {
     """
-    Flag to indicate whether the given name is a stage name or
-    psyeudonym name
+    The local Country
     """
-    isStageName: Boolean!
+    country: GRPS_CountryCd
     """
-    Flag to indicate whether the full name is the legal name
+    The local Country Participant Identifer
     """
-    isLegalName: Boolean!
+    localId: String
+    """
+    The local name of the Participant in the designated language
+    """
+    localName: GRPS_PartyName
+}
+
+"""
+Identifies the local Company Participant id and name
+"""
+type GRPS_Company_Participant {
+    """
+    The associated Company
+    """
+    company: GRPS_Company
+    """
+    The local Company Participant Identifer
+    """
+    localId: String
+    """
+    The local name of the Participant in the designated language
+    """
+    localName: GRPS_PartyName
 }
 
 """
@@ -201,11 +232,11 @@ type GRPS_Participant{
     """
     id: ID!
     """
-    A moniker identifying the source for this instance of a Participant
+    A moniker identifying the source backend service for this instance of a Participant
     """
-    source: DataSource!
+    source: Source!
     """
-    A collection of linked, external Participant Entities
+    A collection of mapped, external (Spotify, Gracenote, Orchard, etc.) Participant Entities
     """
     extParticipants: [Participant!]
     """
@@ -213,9 +244,33 @@ type GRPS_Participant{
     """
     name: GRPS_PartyName!
     """
+    Information to assist in identifying similar artist names (e.g. Characteristics)
+    """
+    disambiguation: String!
+    """
+    The native language of the participant
+    """
+    nativeLanguage: GRPS_LanguageCd
+    """
+    The legal name for the Participant, if different than the Participant name
+    """
+    legalName: GRPS_PartyName
+    """
+    Flag to assist in disambiguating possible duplicate Participants
+    """
+    isPreferred: Boolean!
+    """
     A collection of localized names for the primary name of Participant
     """
     localizedNames: [GRPS_PartyName!]
+    """
+    A collection of local country information for the Participant
+    """
+    altLocalParticipants: [GRPS_Local_Participant!]
+    """
+    A collection of Company specfic information for the Participant
+    """
+    altCompanyParticipants: [GRPS_Company_Participant!]
     """
     A collection of also known as names for the Participant (e.g.
     'Beyonce' is also known as 'Queen B', 'Bruce Springsteen' is
@@ -228,65 +283,19 @@ type GRPS_Participant{
     Band or Compound Artist). This is a key table for valid
     Participant Types
     """
-    partType: GRPS_ParticipantType!
+    participantType: GRPS_ParticipantType!
     """
-    If the Participant is a member of a Band or Group
+    The Repertoire Owner for the Participant
+    """
+    repOwner: GRPS_Repertoire_Owner
+    """
+    Identifies Particpant membership in a group
     """
     memberOf: [GRPS_Member!]
     """
-    If ther Particpant is a Band, Group with Members
+    Identifies member Participats of this Participant group
     """
     members: [GRPS_Member!]
-    """
-    Similar Artists
-    """
-    similarParticipants: [GRPS_Participant!]
-    """
-    A flag indicating whether the Participant is an Organization or an
-    Individual
-    """
-    isOrganziation: Boolean!
-    """
-    Identifies the affilation for the Participant
-    """
-    affliation: String
-    """
-    Most frequent contributor roles
-    """
-    typicalRoles: String
-    """
-    Participant images
-    """
-    images: [GRPS_Image!]
-    """
-    Related Participant Content Links
-    """
-    relatedContent: [GRPS_ContentLink!]
-}
-
-"""
-Member of Band Or Group
-"""
-type GRPS_Member{
-    """
-    Defines the type of membership for a participant
-    """
-    memberType: GRPS_DataSourceCd!
-    """
-    Identifies the parent Participant in a memberOf relation
-    or a member in a members relationhip.
-    """
-    member: GRPS_Participant!
-}
-
-"""
-General or Background information for a Party
-"""
-type GRPS_PartyGeneralInfo{
-    """
-    The Gender of the Party
-    """
-    gender: String!
     """
     Date of Birth
     """
@@ -296,43 +305,122 @@ type GRPS_PartyGeneralInfo{
     """
     dateOfDeath: Date
     """
-    Birth Place
-    """
-    birthPlace: String
-    """
-    The country of main residency for the Participant
-    """
-    residency: GRPS_CountryCd
-    """
     The nationality of the Participant
     """
     nationality: GRPS_CountryCd
     """
+    City associated with Participant
+    """
+    cityAffliation: String
+    """
+    Most frequent contributor roles
+    """
+    typicalRoles: String
+    """
+    Participant Contributions
+    """
+    contributions: [GRPS_Contribution!]
+    """
     Notes and comments regarding Participant
     """
     comments: [GRPS_Comment!]
+    """
+    User messages posted to the Participant
+    """
+    userMessages: [GRPS_User_Message!]
+    """
+    Participant images
+    """
+    images: [GRPS_Image!]
+    """
+    Related Participant Content Links
+    """
+    relatedContent: [GRPS_ContentLink!]
+    """
+    A collection of downstream systems dependent on this Participant
+    """
+    whereUsed: [String!]
 }
 
 """
-Defines a a localized, ordered entity comment
+Defines a member in a group of participants.
+"""
+type GRPS_Member{
+    """
+    Defines the type of membership for a participant
+    """
+    memberType: String!
+    """
+    Member Participant
+    """
+    member: GRPS_Participant
+}
+
+"""
+A tagging interface to define an entity for which Participants can contribute to its creation
+"""
+interface GRPS_ContributorWork {
+
+}
+
+"""
+Defines a Participant Credit or Contribution to a Recording Project, Product Version, Product or Track
+"""
+type GRPS_Contribution {
+    """
+    Idenifies the Participant Contributor
+    """
+    contributor: GRPS_Participant!
+    """
+    Defines the high level role for the Particpant contribution
+    """
+    roleClass: ContributorClass!
+    """
+    Defines the specific role the Participant contribution (e.g. DDEX Contributor Roles)
+    """
+    roleType: String!
+    """
+    The entity for which the Participant contributed to its production
+    """
+    contributeToEntity: GRPS_ContributorWork!
+    """
+    A flag to indicate the Participant's role in the work is confidential
+    """
+    isConfidential: Boolean
+    }
+
+"""
+Defines a localized, ordered entity comment
 """
 type GRPS_Comment{
-    seqNo: Int!
     text: GRPS_LocalString!
     updateDt: Datetime!
     updateBy: String!
 }
 
 """
+Defines a localized, ordered user message comment
+"""
+type GRPS_User_Message{
+    messageType: String!
+    messageText: GRPS_LocalString
+    participant: GRPS_Participant
+    project: GRPS_Recording_Project
+    productVersion: GRPS_Product_Version
+    product: GRPS_Product_Version
+    track: GRPS_Track
+    updateDt: Datetime!
+    updateBy: String!
+}
+"""
 Defines a internet accessible image for use with Entities
 """
 type GRPS_Image{
     url: URL!
-    source: DataSource!
+    source: Source!
     text: GRPS_LocalString
     height: Int!
     width: Int!
-    size: TSize!
     usage: ImageUsageType!
 }
 
@@ -341,20 +429,112 @@ Defines an content links for an entity
 """
 type GRPS_ContentLink{
     url: URL!
-    source: DataSource!
+    source: Source!
     text: GRPS_LocalString
     desc: GRPS_LocalString
+}
+
+"""
+Defines a Recording Project
+"""
+type GRPS_Recording_Project implements GRPS_ContributorWork {
+    """
+    The source system, unique identifier for the Recording Project
+    """
+    id: ID!
+    """
+    A moniker identifying the source backend service for this instance of a Recording Project
+    """
+    source: Source!
+    """
+    Participants contributing to this Recording Project
+    """
+    contributors: [GRPS_Contribution!]
+}
+
+
+"""
+Defines a Prodcut Version
+"""
+type GRPS_Product_Version implements GRPS_ContributorWork {
+    """
+    The source system, unique identifier for the Product Version
+    """
+    id: ID!
+    """
+    A moniker identifying the source backend service for this instance of a Product Version
+    """
+    source: Source!
+    """
+    Participants contributing to this Product Version
+    """
+    contributors: [GRPS_Contribution!]
+
+}
+
+
+"""
+Defines a Product
+"""
+type GRPS_Product implements GRPS_ContributorWork {
+    """
+    The source system, unique identifier for the Product
+    """
+    id: ID!
+    """
+    A moniker identifying the source backend service for this instance of a Product
+    """
+    source: Source!
+    """
+    Participants contributing to this Product
+    """
+    contributors: [GRPS_Contribution!]
+
+}
+
+"""
+Defines a Track (aka DDEX MusicalWorkSoundRecording)
+"""
+type GRPS_Track implements GRPS_ContributorWork {
+    """
+    The source system, unique identifier for the Track
+    """
+    id: ID!
+    """
+    A moniker identifying the source backend service for this instance of a Track
+    """
+    source: Source!
+    """
+    Participants contributing to this Track
+    """
+    contributors: [GRPS_Contribution!]
+
+}
+
+
+"""
+Defines a Song (aka DDEX MusicalWork)
+"""
+type GRPS_Song {
+    """
+    The source system, unique identifier for the Song
+    """
+    id: ID!
+    """
+    A moniker identifying the source backend service for this instance of a Song
+    """
+    source: Source!
 }
 
 type Query {
 """
 Search across for GRPS specific Participants, and if referenced, delegate to RDX service to find external links
-1. Search for matching Participant from the GRPS backend service
-2. Return GRPS_Participant type for each matching GRPS Participant
-3. A reference to a extParticipants field causes the federation to delegate to RDX service using GRPS Participant id and source
-4. RDX service finds all external Participants (id and source) mapped to the GRPS Participant
-4. A reference to a Spotify Participant field on the external Participant causes the federation to delegate to SPOT_Participant field
-5. The result is a GRPS Participant with a collection of external linked Participants
+# Search for matching Participant from the GRPS backend service
+# Return GRPS_Participant type for each matching GRPS Participant
+# A reference to a extParticipants field causes the federation to delegate to RDX service using GRPS Participant id and source
+# RDX service finds all external Participants (id and source) mapped to the GRPS Participant
+# A reference to a Spotify Participant field on the external Participant causes the federation to delegate to SPOT_Participant field
+# The result is a GRPS Participant with a collection of external linked Participants
 """
 findGRPSParticipantByName(limit: Int, offset: Int, query: String!): [GRPS_Participant!]
 }
