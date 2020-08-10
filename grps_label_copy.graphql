@@ -360,7 +360,7 @@ type GRPS_Member{
 A tagging interface to define an entity for which Participants can contribute to its creation
 """
 interface GRPS_ContributorWork {
-
+    id: ID!
 }
 
 """
