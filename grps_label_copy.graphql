@@ -91,6 +91,13 @@ type GRPS_LanguageCd{
 }
 
 """
+Input type for Language Code
+"""
+input GRPS_LanguageCdInput {
+    script: String!
+}
+
+"""
 Identifies the valid country codes
 """
 type GRPS_CountryCd{
@@ -101,11 +108,34 @@ type GRPS_CountryCd{
     """
     The ISO 3166-3 3 character alpha Country Code
     """
-    code_3: String!
+    code_3: String
     """
     The country name
     """
     name: String!
+}
+"""
+Identifies the input for GRPS_CountryCd
+"""
+input GRPS_CountryCdInput {
+    """
+    The ISO 3166-2 2 character alpha Country Code
+    """
+    code_2: String!
+}
+
+"""
+The original source of the data
+"""
+type GRPS_DataSourceCd{
+    """
+    A unique code identifying the data source
+    """
+    code: String!
+    """
+    The display title for the data source
+    """
+    title: String!
 }
 
 """
@@ -117,13 +147,13 @@ type GRPS_LocalString{
 }
 
 """
-Type type of group membership
+Local Text Input
 """
-type GRPS_DataSourceCd{
-    id: ID!
-    code: String!
-    title: GRPS_LocalString!
+input GRPS_LocalStringInput {
+    text: String!
+    language: GRPS_LocalStringInput!
 }
+
 """
 A Company associated with the Participant, Project, Product.
 """
@@ -140,74 +170,69 @@ type GRPS_Repertoire_Owner {
 }
 
 """
-The Type of Artist with localized titles
+Types of Participants
 """
 type GRPS_ParticipantType {
+    """
+    A unique id for a Participant Type
+    """
     id: ID!
-    title: GRPS_LocalString!
+    """
+    The title of the Participant Type
+    """
+    title: String!
+    """
+    Indicates whether this type of Participant can be a Member of a Group Participant
+    """
     eligibleMember: Boolean!
+    """
+    Indicates whether this type of Participant can be a Group with Members.
+    """
     eligibleGroup: Boolean!
-    """
-    Defines a further classification of the type of Participant
-    """
-    participantSubTypes: [GRPS_LocalString!]
 }
 
 """
-A fully qualified, localized party name
+Types of Participants
 """
-type GRPS_PartyName{
+input GRPS_ParticipantTypeInput {
     """
-    The complete name of the Party in its normal
-    form of presentation (e.g. John H. SMith, Acme
-    Music Inc., The Beatles)
+    The title of the Participant Type
     """
-    fullName: String!
+    title: String!
     """
-    The fullname transcribed into 7-bit ASCII characters
+    Indicates whether this type of Participant can be a Member of a Group Participant
     """
-    asciiFullName: String!
+    eligibleMember: Boolean!
     """
-    The complete name of the Party in the form in which it
-    normally appears in an alphabetic index, with
-    the KeyName first (e.g. Smith, John H.; Beatles, The)
+    Indicates whether this type of Participant can be a Group with Members.
     """
-    indexName: String!
-    """
-    The names (aka First Name) preceeding the KeyName in the
-    full name (e.g. 'George' in 'George Michael'; 'John
-    Fitzgerald' in 'John Fitzgerald Kennedy').  Not all Party
-    Names have a NamesBeforeKeyName (e.g. Madonna, Prince).
-    """
-    namesBeforeKeyName: String!
-    """
-    The family or surname (aka Last Name) typically used to
-    index an entry in an alphabetic list, such as 'Michael' in
-    'George Michael' or 'Kennedy' in 'John Fitzgerald Kennedy'.
-    """
-    keyname: String!
-    """
-    The names following the KeyName (e.g. 'Ibrahim' in 'Anwar
-    Ibrahim').  This is common in many Asian personal name forms
-    where the full name begins with the KeyName, which is followed
-    by other names.
-    """
-    namesAfterKeyname: String!
-    """
-    Any additions to the Last and First Name such as featuring
-    artist information or duet partners
-    """
-    bleed: String!
-    """
-    A short version of the Party Name for use on devices with
-    a small display.
-    """
-    abbrName: String!
-    """
-    The local language context for name
-    """
-    language: GRPS_LanguageCd
+    eligibleGroup: Boolean!
 }
+
+"""
+SubType of Participants.
+"""
+type GRPS_ParticipantSubType {
+    """
+    A unique id for a Participant SubType
+    """
+    id: ID!
+    """
+    The title for the Participant SubType
+    """
+    title: String!
+}
+
+"""
+Input SubType of Participants.
+"""
+input GRPS_ParticipantSubTypeInput {
+    """
+    The title for the Participant SubType
+    """
+    title: String!
+}
+
 """
 Identifies the local Participant id and name
 """
@@ -215,33 +240,25 @@ type GRPS_Local_Participant {
     """
     The local Country
     """
-    country: GRPS_CountryCd
+    country: GRPS_CountryCd!
     """
     The local Country Participant Identifer
     """
-    localId: String
-    """
-    The local name of the Participant in the designated language
-    """
-    localName: GRPS_PartyName
+    localId: String!
 }
 
 """
-Identifies the local Company Participant id and name
+Identifies the input type for local Participant id
 """
-type GRPS_Company_Participant {
+input GRPS_Local_ParticipantInput {
     """
-    The associated Company
+    The local Country
     """
-    company: GRPS_Company
+    country: GRPS_CountryCdInput!
     """
-    The local Company Participant Identifer
+    The local Country Participant Identifer
     """
-    localId: String
-    """
-    The local name of the Participant in the designated language
-    """
-    localName: GRPS_PartyName
+    localId: String!
 }
 
 """
@@ -252,68 +269,107 @@ type GRPS_Participant{
     """
     The source system, unique identifier for the Participant (GRPS ID)
     """
-    id: ID!
+    grpsId: ID!
     """
-    A moniker identifying the source backend service for this instance of a Participant.  This is a constang 'GRPS'.
+    A moniker identifying the source backend service for this instance of a Participant.  This is a placeholder if
+    the same GRPS GQL schema is used for the variants and replicas of GRPS backend sources.
     """
     source: Source!
     """
-    A collection of mapped, external (Spotify, Gracenote, Orchard, etc.) Participant Entities (normalize tras006)
+    The complete name of the Party in its normal
+    form of presentation (e.g. John H. SMith, Acme
+    Music Inc., The Beatles)
     """
-    extParticipants: [Participant!]
+    fullName: String!
     """
-    The fully qualified, localized name for the Participant (source tras006 with language code)
+    The complete name of the Party in the form in which it
+    normally appears in an alphabetic index, with
+    the KeyName first (e.g. Smith, John H.; Beatles, The)
     """
-    name: GRPS_PartyName!
+    indexName: String
     """
-    Information to assist in identifying similar artist names (e.g. tras039 Characteristics)
+    The names (aka First Name) preceeding the KeyName in the
+    full name (e.g. 'George' in 'George Michael'; 'John
+    Fitzgerald' in 'John Fitzgerald Kennedy').  Not all Party
+    Names have a NamesBeforeKeyName (e.g. Madonna, Prince).
     """
-    disambiguation: String!
+    firstName: String
+    """
+    The family or surname (aka Last Name) typically used to
+    index an entry in an alphabetic list, such as 'Michael' in
+    'George Michael' or 'Kennedy' in 'John Fitzgerald Kennedy'.
+    """
+    lastName: String
+    """
+    Any additions to the Last and First Name such as featuring
+    artist information or duet partners
+    """
+    bleed: String
+    """
+    The legal first name for the Participant, if different than the Participant name (tras006 qualified Legal Name)
+    """
+    legalFirstName: String
+    """
+    The legal last name for the Participant, if different than the Participant name (tras006 qualified Legal Name)
+    """
+    legalLastName: String
+    """
+    The local language context for name
+    """
+    nameLanguage: GRPS_LanguageCd
     """
     The native language of the participant (source tras006)
     """
     nativeLanguage: GRPS_LanguageCd
     """
-    The legal name for the Participant, if different than the Participant name (tras006 qualified Legal Name)
+    Information to assist in identifying similar artist names (e.g. tras039 Characteristics)
     """
-    legalName: GRPS_PartyName
+    disambiguation: String
     """
     A collection of localized names for the primary name of Participant (sources all localized names, and encodings)
     """
-    localizedNames: [GRPS_PartyName!]
+    localizedNames: [GRPS_LocalString!]
     """
     A collection of local country information for the Participant (source tras212, tras026)
     """
-    altLocalParticipants: [GRPS_Local_Participant!]
+    localParticipants: [GRPS_Local_Participant!]
     """
-    A collection of Company specfic information for the Participant (source tras399)
+    Defines the type of Paricipant (e.g. Person, Individual,  Band or Compound Artist). This is a key table for valid  Participant Types
     """
-    altCompanyParticipants: [GRPS_Company_Participant!]
+    participantType: GRPS_ParticipantType!
+    """
+    Defines a collection of finer-grained SubTypes to describe the Participant Type
+    """
+    participantSubTypes: [GRPS_ParticipantSubType!]
+    """
+    The Spotify URI for this Participant
+    """
+    spotifyURI: String
+    """
+    The Apple Id for this Participant
+    """
+    appleId: String
+    """
+    The ISNI for this Participant
+    """
+    isni: String
     """
     A collection of collaborations the Participant (source tras006 family-no), exclude source Participant.
     """
     collaborations(limit: Int!, after: String, query: String, sortKey: GRPS_ParticipantSortKeys = ID, reverse: Boolean = false): [GRPS_ParticipantConnection!]
     """
-    A collection of also known as names for the Participant (e.g.
-    'Beyonce' is also known as 'Queen B', 'Bruce Springsteen' is
-    also known as 'The Boss').  This collection may include
-    the Legal Name for the Participant (source tras006 - alias_no)
+    A collection of also known as names for the Participant (e.g.    'Beyonce' is also known as 'Queen B', 'Bruce Springsteen' is
+    also known as 'The Boss').  This collection may include the Legal Name for the Participant (source tras006 - alias_no)
     """
-    altNames: [GRPS_PartyName!]
-    """
-    Defines the type of Paricipant (e.g. Person, Individual,
-    Band or Compound Artist). This is a key table for valid
-    Participant Types
-    """
-    participantType: GRPS_ParticipantType!
+    aliases(limit: Int!, after: String, query: String, sortKey: GRPS_ParticipantSortKeys = ID, reverse: Boolean = false): [GRPS_ParticipantConnection!]
     """
     Identifies Particpant membership in a group
     """
-    memberOf: [GRPS_Member!]
+    memberOf: [GRPS_ParticipantMember!]
     """
     Identifies member Participats of this Participant group
     """
-    members: [GRPS_Member!]
+    members: [GRPS_ParticipantMember!]
     """
     Date of Birth
     """
@@ -347,14 +403,6 @@ type GRPS_Participant{
     """
     otherContributions (limit: Int!, after: String, query: String, sortKey: GRPS_ContributorRoleSortKeys = CLASS, reverse: Boolean = false): [GRPS_ContributedWorkConnection!]
     """
-    Notes and comments regarding Participant
-    """
-    comments: [GRPS_Comment!]
-    """
-    User messages posted to the Participant
-    """
-    userMessages: [GRPS_User_Message!]
-    """
     Participant images
     """
     images: [GRPS_Image!]
@@ -362,6 +410,10 @@ type GRPS_Participant{
     Related Participant Content Links
     """
     relatedContent: [GRPS_ContentLink!]
+    """
+    The original source of this Participant
+    """
+    dataSource: GRPS_DataSourceCd
     """
     A collection of downstream systems dependent on this Participant
     """
@@ -371,7 +423,7 @@ type GRPS_Participant{
 """
 Defines a member in a group of participants.
 """
-type GRPS_Member{
+type GRPS_ParticipantMember{
     """
     Defines the type of membership for a participant
     """
@@ -382,6 +434,37 @@ type GRPS_Member{
     member: GRPS_Participant
 }
 
+"""
+The input type to add a member to a group Participant
+"""
+input GRPS_ParticipantMemberInput{
+    """
+    The target group Participant ID.  The respective Participant Type must allow Members
+    """
+    groupMemberId: ID!
+    """
+    Defines the type of membership for a participant
+    """
+    memberType: String!
+    """
+    Member Participant ID
+    """
+    memberId: ID!
+}
+
+"""
+The input type to add an associated (Collaborator, Alias) a Participant, or merge two Participants
+"""
+input GRPS_ParticipantAssociationInput{
+    """
+    The target Participant ID
+    """
+    targetParticipantId: ID!
+    """
+    Source Participant ID
+    """
+    sourceParticipantId: ID!
+}
 """
 A tagging interface to define an entity for which Participants can contribute to its creation
 """
@@ -457,35 +540,12 @@ type GRPS_ContributerConnection {
 }
 
 """
-Defines a localized, ordered entity comment
-"""
-type GRPS_Comment{
-    text: GRPS_LocalString!
-    updateDt: Datetime!
-    updateBy: String!
-}
-
-"""
-Defines a localized, ordered user message comment
-"""
-type GRPS_User_Message{
-    messageType: String!
-    messageText: GRPS_LocalString
-    participant: GRPS_Participant
-    project: GRPS_Recording_Project
-    productVersion: GRPS_Product_Version
-    product: GRPS_Product_Version
-    track: GRPS_Track
-    updateDt: Datetime!
-    updateBy: String!
-}
-"""
 Defines a internet accessible image for use with Entities
 """
 type GRPS_Image{
     url: URL!
     source: Source!
-    text: GRPS_LocalString
+    text: String
     height: Int!
     width: Int!
     usage: ImageUsageType!
@@ -497,8 +557,8 @@ Defines an content links for an entity
 type GRPS_ContentLink{
     url: URL!
     source: Source!
-    text: GRPS_LocalString
-    desc: GRPS_LocalString
+    text: String
+    desc: String
 }
 
 """
@@ -609,48 +669,85 @@ type GRPS_ParticipantConnection {
     nodes: [GRPS_Participant!]
 }
 
-input ParticipantInput {
+input GRPS_ParticipantInput {
     """
-    The fully qualified, localized name for the Participant (source tras006 with language code)
+    The complete name of the Party in its normal
+    form of presentation (e.g. John H. SMith, Acme
+    Music Inc., The Beatles)
     """
-    name: GRPS_PartyName!
+    fullName: String!
     """
-    Information to assist in identifying similar artist names (e.g. tras039 Characteristics)
+    The complete name of the Party in the form in which it
+    normally appears in an alphabetic index, with
+    the KeyName first (e.g. Smith, John H.; Beatles, The)
     """
-    disambiguation: String!
+    indexName: String
+    """
+    The names (aka First Name) preceeding the KeyName in the
+    full name (e.g. 'George' in 'George Michael'; 'John
+    Fitzgerald' in 'John Fitzgerald Kennedy').  Not all Party
+    Names have a NamesBeforeKeyName (e.g. Madonna, Prince).
+    """
+    firstName: String
+    """
+    The family or surname (aka Last Name) typically used to
+    index an entry in an alphabetic list, such as 'Michael' in
+    'George Michael' or 'Kennedy' in 'John Fitzgerald Kennedy'.
+    """
+    lastName: String
+    """
+    Any additions to the Last and First Name such as featuring
+    artist information or duet partners
+    """
+    bleed: String
+    """
+    The legal first name for the Participant, if different than the Participant name (tras006 qualified Legal Name)
+    """
+    legalFirstName: String
+    """
+    The legal last name for the Participant, if different than the Participant name (tras006 qualified Legal Name)
+    """
+    legalLastName: String
+    """
+    The local language context for name
+    """
+    nameLanguage: GRPS_LanguageCdInput
     """
     The native language of the participant (source tras006)
     """
-    nativeLanguage: GRPS_LanguageCd
+    nativeLanguage: GRPS_LanguageCdInput
     """
-    The legal name for the Participant, if different than the Participant name (tras006 qualified Legal Name)
+    Information to assist in identifying similar artist names (e.g. tras039 Characteristics)
     """
-    legalName: GRPS_PartyName
+    disambiguation: String
     """
     A collection of localized names for the primary name of Participant (sources all localized names, and encodings)
     """
-    localizedNames: [GRPS_PartyName!]
+    localizedNames: [GRPS_LocalStringInput!]
     """
     A collection of local country information for the Participant (source tras212, tras026)
     """
-    altLocalParticipants: [GRPS_Local_Participant!]
+    localParticipants: [GRPS_Local_ParticipantInput!]
     """
-    A collection of Company specfic information for the Participant (source tras399)
+    Defines the type of Paricipant (e.g. Person, Individual,  Band or Compound Artist). This is a key table for valid  Participant Types
     """
-    altCompanyParticipants: [GRPS_Company_Participant!]
+    participantTypeId: ID!
     """
-    A collection of also known as names for the Participant (e.g.
-    'Beyonce' is also known as 'Queen B', 'Bruce Springsteen' is
-    also known as 'The Boss').  This collection may include
-    the Legal Name for the Participant (source tras006 - alias_no)
+    Defines a collection of finer-grained SubTypes to describe the Participant Type
     """
-    altNames: [GRPS_PartyName!]
+    participantSubTypes: [ID!]
     """
-    Defines the type of Paricipant (e.g. Person, Individual,
-    Band or Compound Artist). This is a key table for valid
-    Participant Types
+    The Spotify URI for this Participant
     """
-    participantType: GRPS_ParticipantType!
+    spotifyURI: String
+    """
+    The Apple Id for this Participant
+    """
+    appleId: String
+    """
+    The ISNI for this Participant
+    """
+    isni: String
     """
     Date of Birth
     """
@@ -662,13 +759,13 @@ input ParticipantInput {
     """
     The nationality of the Participant
     """
-    nationality: GRPS_CountryCd
+    nationality: GRPS_CountryCdInput
     """
     City associated with Participant
     """
     cityAffliation: String
-
 }
+
 """
 Return type for createParticipant mutation
 """
@@ -727,15 +824,30 @@ type Mutation {
     """
     Create a new Participant
     """
-    participantCreate(input: ParticipantInput!) : GRPS_ParticipantMutationResult
+    participantCreate(input: GRPS_ParticipantInput!) : GRPS_ParticipantMutationResult
     """
     Update a Participant
     """
-    participantUpdate(input: ParticipantInput!) : GRPS_ParticipantMutationResult
-
+    participantUpdate(input: GRPS_ParticipantInput!) : GRPS_ParticipantMutationResult
+    """
+    Add a Participant to a Group Participant
+    """
+    participantAddMember(input: GRPS_ParticipantMemberInput!) : GRPS_ParticipantMutationResult
+    """
+    Add a Participant as a Collaborator
+    """
+    participantAddCollaborator(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantMutationResult
+    """
+    Add a Participant as a Alias
+    """
+    participantAddAlias(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantMutationResult
+    """
+    Merge two Participants retaining the Target Participant
+    """
+    participantMerge(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantMutationResult
 }
 
-schema{f
+schema{
     query: Query
     mutation: Mutation
 }
