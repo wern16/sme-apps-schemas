@@ -44,19 +44,40 @@ enum ContributorClass {
 }
 
 """
+Participant Sort Keys
+"""
+enum GRPS_ParticipantSortKeys {
+    ID
+    NAME
+}
+
+"""
+Contributor Role Sort Keys
+"""
+enum GRPS_ContributorRoleSortKeys {
+    ROLE_CLASS
+    ROLE_TYPE
+}
+
+"""
+Contributed Work
+"""
+enum GRPS_ContributedWorkSortKeys {
+    RELEASE_DATE
+}
+
+"""
 Stub - Aggregate Participant Entity
+extend type Participant @key(fields: "grpsId") {
 """
 type Participant {
     """
-    Universally, unique identifier for backend service Participant
+    The source system, unique identifier for the Participant (GRPS ID)
     """
-    id: ID!
+    grpsId: ID!
+
     """
-    Identifies the source backend service of the Participant
-    """
-    source: Source
-    """
-    Exend Participant to add GRPS_Participant
+    Extend Participant to add GRPS_Participant
     """
     GRPS_Participant: GRPS_Participant
 }
@@ -115,6 +136,7 @@ A Repertoire Owner
 """
 type GRPS_Repertoire_Owner {
     id: ID!
+    company: GRPS_Company
 }
 
 """
@@ -228,54 +250,54 @@ Individual, Band Artists, Participants
 """
 type GRPS_Participant{
     """
-    The source system, unique identifier for the Participant
+    The source system, unique identifier for the Participant (GRPS ID)
     """
     id: ID!
     """
-    A moniker identifying the source backend service for this instance of a Participant
+    A moniker identifying the source backend service for this instance of a Participant.  This is a constang 'GRPS'.
     """
     source: Source!
     """
-    A collection of mapped, external (Spotify, Gracenote, Orchard, etc.) Participant Entities
+    A collection of mapped, external (Spotify, Gracenote, Orchard, etc.) Participant Entities (normalize tras006)
     """
     extParticipants: [Participant!]
     """
-    The fully qualified, localized name for the Participant
+    The fully qualified, localized name for the Participant (source tras006 with language code)
     """
     name: GRPS_PartyName!
     """
-    Information to assist in identifying similar artist names (e.g. Characteristics)
+    Information to assist in identifying similar artist names (e.g. tras039 Characteristics)
     """
     disambiguation: String!
     """
-    The native language of the participant
+    The native language of the participant (source tras006)
     """
     nativeLanguage: GRPS_LanguageCd
     """
-    The legal name for the Participant, if different than the Participant name
+    The legal name for the Participant, if different than the Participant name (tras006 qualified Legal Name)
     """
     legalName: GRPS_PartyName
     """
-    Flag to assist in disambiguating possible duplicate Participants
-    """
-    isPreferred: Boolean!
-    """
-    A collection of localized names for the primary name of Participant
+    A collection of localized names for the primary name of Participant (sources all localized names, and encodings)
     """
     localizedNames: [GRPS_PartyName!]
     """
-    A collection of local country information for the Participant
+    A collection of local country information for the Participant (source tras212, tras026)
     """
     altLocalParticipants: [GRPS_Local_Participant!]
     """
-    A collection of Company specfic information for the Participant
+    A collection of Company specfic information for the Participant (source tras399)
     """
     altCompanyParticipants: [GRPS_Company_Participant!]
+    """
+    A collection of collaborations the Participant (source tras006 family-no), exclude source Participant.
+    """
+    collaborations(limit: Int!, after: String, query: String, sortKey: GRPS_ParticipantSortKeys = ID, reverse: Boolean = false): [GRPS_ParticipantConnection!]
     """
     A collection of also known as names for the Participant (e.g.
     'Beyonce' is also known as 'Queen B', 'Bruce Springsteen' is
     also known as 'The Boss').  This collection may include
-    the Legal Name for the Participant
+    the Legal Name for the Participant (source tras006 - alias_no)
     """
     altNames: [GRPS_PartyName!]
     """
@@ -284,10 +306,6 @@ type GRPS_Participant{
     Participant Types
     """
     participantType: GRPS_ParticipantType!
-    """
-    The Repertoire Owner for the Participant
-    """
-    repOwner: GRPS_Repertoire_Owner
     """
     Identifies Particpant membership in a group
     """
@@ -317,9 +335,17 @@ type GRPS_Participant{
     """
     typicalRoles: String
     """
-    Participant Contributions
+    Participant Recording Projects
     """
-    contributions: [GRPS_Contribution!]
+    projects: [GRPS_Recording_Project!]
+    """
+    Participant Main Works
+    """
+    mainWorks (limit: Int!, after: String, query: String, sortKey: GRPS_ContributorRoleSortKeys = ID, reverse: Boolean = false): [GRPS_MainWorkConnection!]
+    """
+    Participant Works
+    """
+    otherContributions (limit: Int!, after: String, query: String, sortKey: GRPS_ContributorRoleSortKeys = CLASS, reverse: Boolean = false): [GRPS_ContributedWorkConnection!]
     """
     Notes and comments regarding Participant
     """
@@ -359,18 +385,14 @@ type GRPS_Member{
 """
 A tagging interface to define an entity for which Participants can contribute to its creation
 """
-interface GRPS_ContributorWork {
+interface GRPS_ContributableWork {
     id: ID!
 }
 
 """
 Defines a Participant Credit or Contribution to a Recording Project, Product Version, Product or Track
 """
-type GRPS_Contribution {
-    """
-    Idenifies the Participant Contributor
-    """
-    contributor: GRPS_Participant!
+type GRPS_ContributedWork {
     """
     Defines the high level role for the Particpant contribution
     """
@@ -382,12 +404,57 @@ type GRPS_Contribution {
     """
     The entity for which the Participant contributed to its production
     """
-    contributeToEntity: GRPS_ContributorWork!
+    work: GRPS_ContributableWork!
     """
     A flag to indicate the Participant's role in the work is confidential
     """
     isConfidential: Boolean
-    }
+}
+
+"""
+Defines a Participant Credit or Contribution to a Recording Project, Product Version, Product or Track
+"""
+type GRPS_Contributer {
+    """
+    Defines the high level role for the Particpant contribution
+    """
+    roleClass: ContributorClass!
+    """
+    Defines the specific role the Participant contribution (e.g. DDEX Contributor Roles)
+    """
+    roleType: String!
+    """
+    The entity for which the Participant contributed to its production
+    """
+    contributor: GRPS_Participant!
+    """
+    A flag to indicate the Participant's role in the work is confidential
+    """
+    isConfidential: Boolean
+}
+
+"""
+A Contributed Work Connection
+"""
+type GRPS_ContributedWorkConnection {
+    totalCount: Int!
+    nodes: [GRPS_ContributedWork!]
+}
+
+"""
+A WorkConnection
+"""
+type GRPS_MainWorkConnection {
+    totalCount: Int!
+    nodes: [GRPS_ContributableWork!]
+}
+"""
+A Participant Contributor Connection
+"""
+type GRPS_ContributerConnection {
+    totalCount: Int!
+    nodes: [GRPS_Contributer!]
+}
 
 """
 Defines a localized, ordered entity comment
@@ -437,7 +504,7 @@ type GRPS_ContentLink{
 """
 Defines a Recording Project
 """
-type GRPS_Recording_Project implements GRPS_ContributorWork {
+type GRPS_Recording_Project implements GRPS_ContributableWork {
     """
     The source system, unique identifier for the Recording Project
     """
@@ -449,14 +516,14 @@ type GRPS_Recording_Project implements GRPS_ContributorWork {
     """
     Participants contributing to this Recording Project
     """
-    contributors: [GRPS_Contribution!]
+    contributors (limit: Int!, after: String, query: String, sortKey: GRPS_ContributorRoleSortKeys = ID, reverse: Boolean = false): [GRPS_ContributerConnection!]
 }
 
 
 """
 Defines a Prodcut Version
 """
-type GRPS_Product_Version implements GRPS_ContributorWork {
+type GRPS_Product_Version implements GRPS_ContributableWork {
     """
     The source system, unique identifier for the Product Version
     """
@@ -468,7 +535,7 @@ type GRPS_Product_Version implements GRPS_ContributorWork {
     """
     Participants contributing to this Product Version
     """
-    contributors: [GRPS_Contribution!]
+    contributors (limit: Int!, after: String, query: String, sortKey: GRPS_ContributorRoleSortKeys = ID, reverse: Boolean = false): [GRPS_ContributerConnection!]
 
 }
 
@@ -476,7 +543,7 @@ type GRPS_Product_Version implements GRPS_ContributorWork {
 """
 Defines a Product
 """
-type GRPS_Product implements GRPS_ContributorWork {
+type GRPS_Product implements GRPS_ContributableWork {
     """
     The source system, unique identifier for the Product
     """
@@ -488,14 +555,14 @@ type GRPS_Product implements GRPS_ContributorWork {
     """
     Participants contributing to this Product
     """
-    contributors: [GRPS_Contribution!]
+    contributors (limit: Int!, after: String, query: String, sortKey: GRPS_ContributorRoleSortKeys = ID, reverse: Boolean = false): [GRPS_ContributerConnection!]
 
 }
 
 """
 Defines a Track (aka DDEX MusicalWorkSoundRecording)
 """
-type GRPS_Track implements GRPS_ContributorWork {
+type GRPS_Track implements GRPS_ContributableWork {
     """
     The source system, unique identifier for the Track
     """
@@ -507,7 +574,8 @@ type GRPS_Track implements GRPS_ContributorWork {
     """
     Participants contributing to this Track
     """
-    contributors: [GRPS_Contribution!]
+    contributors (limit: Int!, after: String, query: String, sortKey: GRPS_ContributorRoleSortKeys = ID, reverse: Boolean = false): [GRPS_ContributerConnection!]
+
 
 }
 
@@ -526,18 +594,148 @@ type GRPS_Song {
     source: Source!
 }
 
-type Query {
 """
-Search across for GRPS specific Participants, and if referenced, delegate to RDX service to find external links
-# Search for matching Participant from the GRPS backend service
-# Return GRPS_Participant type for each matching GRPS Participant
-# A reference to a extParticipants field causes the federation to delegate to RDX service using GRPS Participant id and source
-# RDX service finds all external Participants (id and source) mapped to the GRPS Participant
-# A reference to a Spotify Participant field on the external Participant causes the federation to delegate to SPOT_Participant field
-# The result is a GRPS Participant with a collection of external linked Participants
+Information about pagination in a connection.
 """
-findGRPSParticipantByName(limit: Int, offset: Int, query: String!): [GRPS_Participant!]
+type GRPS_ParticipantConnection {
+    """
+    Identifies the total count of items in the connection
+    """
+    totalCount: Int!
+
+    """
+    A list of Participant nodes
+    """
+    nodes: [GRPS_Participant!]
 }
-schema{
-query: Query
+
+input ParticipantInput {
+    """
+    The fully qualified, localized name for the Participant (source tras006 with language code)
+    """
+    name: GRPS_PartyName!
+    """
+    Information to assist in identifying similar artist names (e.g. tras039 Characteristics)
+    """
+    disambiguation: String!
+    """
+    The native language of the participant (source tras006)
+    """
+    nativeLanguage: GRPS_LanguageCd
+    """
+    The legal name for the Participant, if different than the Participant name (tras006 qualified Legal Name)
+    """
+    legalName: GRPS_PartyName
+    """
+    A collection of localized names for the primary name of Participant (sources all localized names, and encodings)
+    """
+    localizedNames: [GRPS_PartyName!]
+    """
+    A collection of local country information for the Participant (source tras212, tras026)
+    """
+    altLocalParticipants: [GRPS_Local_Participant!]
+    """
+    A collection of Company specfic information for the Participant (source tras399)
+    """
+    altCompanyParticipants: [GRPS_Company_Participant!]
+    """
+    A collection of also known as names for the Participant (e.g.
+    'Beyonce' is also known as 'Queen B', 'Bruce Springsteen' is
+    also known as 'The Boss').  This collection may include
+    the Legal Name for the Participant (source tras006 - alias_no)
+    """
+    altNames: [GRPS_PartyName!]
+    """
+    Defines the type of Paricipant (e.g. Person, Individual,
+    Band or Compound Artist). This is a key table for valid
+    Participant Types
+    """
+    participantType: GRPS_ParticipantType!
+    """
+    Date of Birth
+    """
+    dateOfBirth: Date
+    """
+    Date of Death
+    """
+    dateOfDeath: Date
+    """
+    The nationality of the Participant
+    """
+    nationality: GRPS_CountryCd
+    """
+    City associated with Participant
+    """
+    cityAffliation: String
+
+}
+"""
+Return type for createParticipant mutation
+"""
+type GRPS_ParticipantMutationResult {
+    """
+    The created Participant
+    """
+    participant: GRPS_Participant
+    """
+    A list of checked errors that occurred executing the mutation
+    """
+    userErrors: [GRPS_UserError!]!
+}
+
+type GRPS_UserError {
+    """
+    THe path to the field which caused the error
+    """
+    field: [String!]
+    """
+    A unique code identifying the error
+    """
+    code: String!
+    """
+    The error message
+    """
+    message: String!
+}
+
+type Query {
+    """
+    Returns the Participant by Id
+    """
+    participant(id: String!) : GRPS_Participant
+
+    """
+    Search across for GRPS specific Participants, and if referenced, delegate to RDX service to find external links
+    # Search for matching Participant from the GRPS backend service
+    # Return GRPS_Participant type for each matching GRPS Participant
+    # A reference to a extParticipants field causes the federation to delegate to RDX service using GRPS Participant id and source
+    # RDX service finds all external Participants (id and source) mapped to the GRPS Participant
+    # A reference to a Spotify Participant field on the external Participant causes the federation to delegate to SPOT_Participant field
+    # The result is a GRPS Participant with a collection of external linked Participants
+
+    Parameters:
+    limit - the number of Participants to return
+    after - return the next limit of Participants after the provided Participant Id
+    query - text search across selected fields, OR formated search syntax (e.g. GRPS Search Syntax)
+    sortKey - an enum identifying the field to sort on
+    reverse - a boolean to indicate whether to reverse the sort (DESC)
+    """
+    participants (limit: Int!, after: String, query: String, sortKey: GRPS_ParticipantSortKeys = ID, reverse: Boolean = false) : [GRPS_ParticipantConnection!]
+}
+
+type Mutation {
+    """
+    Create a new Participant
+    """
+    participantCreate(input: ParticipantInput!) : GRPS_ParticipantMutationResult
+    """
+    Update a Participant
+    """
+    participantUpdate(input: ParticipantInput!) : GRPS_ParticipantMutationResult
+
+}
+
+schema{f
+    query: Query
+    mutation: Mutation
 }
