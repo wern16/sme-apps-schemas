@@ -448,31 +448,67 @@ The input type to add a member to a group Participant
 """
 input GRPS_ParticipantMemberInput{
     """
+    Member Participant ID
+    """
+    memberId: ID!
+    """
+    Defines the type of membership for a participant
+    """
+    membershipType: String!
+    """
+    The target group Participant ID.  The respective Participant Type must allow Members
+    """
+    groupMemberId: ID!
+}
+
+"""
+The the result of a Membership change
+"""
+type GRPS_ParticipantMemberResult{
+     """
+    The added or removed of member participant
+    """
+    memberId: ID!
+    """
     The target group Participant ID.  The respective Participant Type must allow Members
     """
     groupMemberId: ID!
     """
-    Defines the type of membership for a participant
+    The result code of the add or remove Member mutation
     """
-    memberType: String!
-    """
-    Member Participant ID
-    """
-    memberId: ID!
+    userErrors: [GRPS_UserError!]
 }
-
 """
 The input type to add an associated (Collaborator, Alias) a Participant, or merge two Participants
 """
 input GRPS_ParticipantAssociationInput{
     """
-    The target Participant ID
+    The source Participant ID
+    """
+    sourceParticipantId: ID!
+    """
+    Target Participant ID
+    """
+    targetParticipantId: ID!
+}
+
+"""
+The result tyupe for add/remove of an associated (Collaborator, Alias) a Participant, or merge two Participants
+"""
+type GRPS_ParticipantAssociationResult{
+    """
+    The source Participant ID
+    """
+    sourceParticipantId: ID!
+    """
+    Target Participant ID
     """
     targetParticipantId: ID!
     """
-    Source Participant ID
+    The result code of the add or remove Member mutation
     """
-    sourceParticipantId: ID!
+    userErrors: [GRPS_UserError!]
+
 }
 """
 A tagging interface to define an entity for which Participants can contribute to its creation
@@ -870,7 +906,7 @@ type GRPS_ParticipantMutationResult {
     """
     A list of checked errors that occurred executing the mutation
     """
-    userErrors: [GRPS_UserError!]!
+    userErrors: [GRPS_UserError!]
 }
 
 """
@@ -884,7 +920,7 @@ type GRPS_ParticipantDeleteResult {
     """
     A list of checked errors that occurred executing the mutation
     """
-    userErrors: [GRPS_UserError!]!
+    userErrors: [GRPS_UserError!]
 }
 
 type GRPS_UserError {
@@ -943,19 +979,31 @@ type Mutation {
     """
     Add a Participant to a Group Participant
     """
-    participantAddMember(input: GRPS_ParticipantMemberInput!) : GRPS_ParticipantMutationResult
+    participantAddMember(input: GRPS_ParticipantMemberInput!) : GRPS_ParticipantMemberResult
+    """
+    Remove a Participant from a Group Participant
+    """
+    participantRemoveMember(input: GRPS_ParticipantMemberInput!) : GRPS_ParticipantMemberResult
     """
     Add a Participant as a Collaborator
     """
-    participantAddCollaborator(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantMutationResult
+    participantAddCollaborator(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantAssociationResult
+    """
+    Add a Participant as a Collaborator
+    """
+    participantRemoveCollaborator(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantAssociationResult
     """
     Add a Participant as a Alias
     """
-    participantAddAlias(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantMutationResult
+    participantAddAlias(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantAssociationResult
+    """
+    Add a Participant as a Alias
+    """
+    participantRemoveAlias(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantAssociationResult
     """
     Merge two Participants retaining the Target Participant
     """
-    participantMerge(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantMutationResult
+    participantMerge(input: GRPS_ParticipantAssociationInput!) : GRPS_ParticipantAssociationResult
 }
 
 schema{
