@@ -29,7 +29,7 @@ enum Source{
 """
 Image Usage Types
 """
-enum ImageUsageType{
+enum GRPS_ImageUsageType{
     THUMBNAIL
     COVER_ART
     PROFILE
@@ -37,7 +37,7 @@ enum ImageUsageType{
 """
 Participant contributor classes or task classes
 """
-enum ContributorClass {
+enum GRPS_ContributorClass {
     PERFORMANCE
     COMPOSITION
     PRODUCTION
@@ -60,12 +60,35 @@ enum GRPS_ContributorRoleSortKeys {
 }
 
 """
-Contributed Work
+Recording Project Sort Keys
 """
-enum GRPS_ContributedWorkSortKeys {
+enum GRPS_ProjectSortKeys {
+    ID
+    RECORD_DATE
+}
+
+"""
+ProductVersion Sort Keys
+"""
+enum GRPS_ProductVersionSortKeys {
+    ID
     RELEASE_DATE
 }
 
+"""
+Product Sort Keys
+"""
+enum GRPS_ProductSortKeys {
+    ID
+    RELEASE_DATE
+}
+"""
+Asset Sort Keys
+"""
+enum GRPS_AssetSortKeys {
+    ID
+    RELEASE_DATE
+}
 """
 Stub - Aggregate Participant Entity
 extend type Participant @key(fields: "grpsId") {
@@ -164,7 +187,7 @@ type GRPS_Company {
 """
 A Repertoire Owner
 """
-type GRPS_Repertoire_Owner {
+type GRPS_RepertoireOwner {
     id: ID!
     company: GRPS_Company
 }
@@ -189,24 +212,11 @@ type GRPS_ParticipantType {
     Indicates whether this type of Participant can be a Group with Members.
     """
     eligibleGroup: Boolean!
-}
+    """
+    Participant SubTypes
+    """
+    subTypes: [GRPS_ParticipantSubType!]
 
-"""
-Types of Participants
-"""
-input GRPS_ParticipantTypeInput {
-    """
-    The title of the Participant Type
-    """
-    title: String!
-    """
-    Indicates whether this type of Participant can be a Member of a Group Participant
-    """
-    eligibleMember: Boolean!
-    """
-    Indicates whether this type of Participant can be a Group with Members.
-    """
-    eligibleGroup: Boolean!
 }
 
 """
@@ -221,22 +231,17 @@ type GRPS_ParticipantSubType {
     The title for the Participant SubType
     """
     title: String!
+    """
+    Parent Participant Type
+    """
+    parent: GRPS_ParticipantType!
 }
 
-"""
-Input SubType of Participants.
-"""
-input GRPS_ParticipantSubTypeInput {
-    """
-    The title for the Participant SubType
-    """
-    title: String!
-}
 
 """
 Identifies the local Participant id and name
 """
-type GRPS_Local_Participant {
+type GRPS_LocalParticipant {
     """
     The local Country
     """
@@ -250,7 +255,7 @@ type GRPS_Local_Participant {
 """
 Identifies the input type for local Participant id
 """
-input GRPS_Local_ParticipantInput {
+input GRPS_LocalParticipantInput {
     """
     The local Country
     """
@@ -322,6 +327,10 @@ type GRPS_Participant{
     """
     nativeLanguage: GRPS_LanguageCd
     """
+    Identifies this as the Preferred Participant profile
+    """
+    preferred: Boolean
+    """
     Information to assist in identifying similar artist names (e.g. tras039 Characteristics)
     """
     disambiguation: String
@@ -332,15 +341,11 @@ type GRPS_Participant{
     """
     A collection of local country information for the Participant (source tras212, tras026)
     """
-    localParticipants: [GRPS_Local_Participant!]
+    localParticipants: [GRPS_LocalParticipant!]
     """
     Defines the type of Paricipant (e.g. Person, Individual,  Band or Compound Artist). This is a key table for valid  Participant Types
     """
     participantType: GRPS_ParticipantType!
-    """
-    Defines a collection of finer-grained SubTypes to describe the Participant Type
-    """
-    participantSubTypes: [GRPS_ParticipantSubType!]
     """
     The Spotify URI for this Participant
     """
@@ -391,17 +396,21 @@ type GRPS_Participant{
     """
     typicalRoles: String
     """
-    Participant Recording Projects
+    Participant Appears On Recording Projects
     """
-    projects: [GRPS_Recording_Project!]
+    projects (limit: Int!, after: String, query: String, sortKey: GRPS_ProjectSortKeys = ID, reverse: Boolean = false): [GRPS_ProjectConnection!]
     """
-    Participant Main Works
+    Participant Appears On Product Versions
     """
-    mainWorks (limit: Int!, after: String, query: String, sortKey: GRPS_ContributorRoleSortKeys = ID, reverse: Boolean = false): [GRPS_MainWorkConnection!]
+    productVersions (limit: Int!, after: String, query: String, sortKey: GRPS_ProductVersionSortKeys = ID, reverse: Boolean = false): [GRPS_ProductVersionConnection!]
     """
-    Participant Works
+    Participant Appears On Products
     """
-    otherContributions (limit: Int!, after: String, query: String, sortKey: GRPS_ContributorRoleSortKeys = CLASS, reverse: Boolean = false): [GRPS_ContributedWorkConnection!]
+    products (limit: Int!, after: String, query: String, sortKey: GRPS_ProductSortKeys = CLASS, reverse: Boolean = false): [GRPS_ProductConnection!]
+    """
+    Participant Appears On Tracks
+    """
+    assets (limit: Int!, after: String, query: String, sortKey: GRPS_AssetSortKeys = CLASS, reverse: Boolean = false): [GRPS_AssetConnection!]
     """
     Participant images
     """
@@ -479,7 +488,7 @@ type GRPS_ContributedWork {
     """
     Defines the high level role for the Particpant contribution
     """
-    roleClass: ContributorClass!
+    roleClass: String!
     """
     Defines the specific role the Participant contribution (e.g. DDEX Contributor Roles)
     """
@@ -499,13 +508,9 @@ Defines a Participant Credit or Contribution to a Recording Project, Product Ver
 """
 type GRPS_Contributer {
     """
-    Defines the high level role for the Particpant contribution
-    """
-    roleClass: ContributorClass!
-    """
     Defines the specific role the Participant contribution (e.g. DDEX Contributor Roles)
     """
-    roleType: String!
+    role: GRPS_ContributorTaskType!
     """
     The entity for which the Participant contributed to its production
     """
@@ -517,20 +522,37 @@ type GRPS_Contributer {
 }
 
 """
-A Contributed Work Connection
+A Project Connection Connection
 """
-type GRPS_ContributedWorkConnection {
+type GRPS_ProjectConnection {
     totalCount: Int!
-    nodes: [GRPS_ContributedWork!]
+    nodes: [GRPS_Project!]
 }
 
 """
-A WorkConnection
+A Product Version Connection
 """
-type GRPS_MainWorkConnection {
+type GRPS_ProductVersionConnection {
     totalCount: Int!
-    nodes: [GRPS_ContributableWork!]
+    nodes: [GRPS_ProductVersion!]
 }
+
+"""
+A Product Connection
+"""
+type GRPS_ProductConnection {
+    totalCount: Int!
+    nodes: [GRPS_Product!]
+}
+
+"""
+An Asset Connection
+"""
+type GRPS_AssetConnection {
+    totalCount: Int!
+    nodes: [GRPS_Asset!]
+}
+
 """
 A Participant Contributor Connection
 """
@@ -548,7 +570,7 @@ type GRPS_Image{
     text: String
     height: Int!
     width: Int!
-    usage: ImageUsageType!
+    usage: GRPS_ImageUsageType!
 }
 
 """
@@ -562,9 +584,61 @@ type GRPS_ContentLink{
 }
 
 """
+Types of Contributor Tasks or Roles
+"""
+type GRPS_ContributorTaskClass {
+    """
+    A unique id for a Contributor Task Class
+    """
+    id: ID!
+    """
+    The title of the Task Class
+    """
+    title: GRPS_LocalString!
+}
+
+"""
+Types of Contributor Tasks or Roles
+"""
+type GRPS_ContributorTaskType {
+    """
+    A unique id for a Contributor Task Type
+    """
+    id: ID!
+    """
+    The title of the Contributor Task Type
+    """
+    title: GRPS_LocalString!
+    """
+    The equivalent DDEX role for this task.
+    """
+    ddexTitle: String
+    """
+    Localized Titles
+    """
+    localizedTitles: [GRPS_LocalString!]
+    """
+    Contributor Task Class
+    """
+    taskClass: GRPS_ContributorTaskClass
+    """
+    Indicates whether this Task Type can have subTypes
+    """
+    eligibleGroup: Boolean!
+    """
+    Parent Task Type
+    """
+    parentTaskType: GRPS_ContributorTaskType
+    """
+    Child Taks Types
+    """
+    childTaskTypes: [GRPS_ContributorTaskType!]
+}
+
+"""
 Defines a Recording Project
 """
-type GRPS_Recording_Project implements GRPS_ContributableWork {
+type GRPS_Project implements GRPS_ContributableWork {
     """
     The source system, unique identifier for the Recording Project
     """
@@ -583,7 +657,7 @@ type GRPS_Recording_Project implements GRPS_ContributableWork {
 """
 Defines a Prodcut Version
 """
-type GRPS_Product_Version implements GRPS_ContributableWork {
+type GRPS_ProductVersion implements GRPS_ContributableWork {
     """
     The source system, unique identifier for the Product Version
     """
@@ -622,7 +696,7 @@ type GRPS_Product implements GRPS_ContributableWork {
 """
 Defines a Track (aka DDEX MusicalWorkSoundRecording)
 """
-type GRPS_Track implements GRPS_ContributableWork {
+type GRPS_Asset implements GRPS_ContributableWork {
     """
     The source system, unique identifier for the Track
     """
@@ -717,6 +791,11 @@ input GRPS_ParticipantInput {
     """
     nativeLanguage: GRPS_LanguageCdInput
     """
+    Identifies this as the Preferred Participant profile
+    """
+    preferred: Boolean
+
+    """
     Information to assist in identifying similar artist names (e.g. tras039 Characteristics)
     """
     disambiguation: String
@@ -727,7 +806,7 @@ input GRPS_ParticipantInput {
     """
     A collection of local country information for the Participant (source tras212, tras026)
     """
-    localParticipants: [GRPS_Local_ParticipantInput!]
+    localParticipants: [GRPS_LocalParticipantInput!]
     """
     Defines the type of Paricipant (e.g. Person, Individual,  Band or Compound Artist). This is a key table for valid  Participant Types
     """
@@ -765,15 +844,43 @@ input GRPS_ParticipantInput {
     """
     cityAffliation: String
 }
+"""
+Participant Delete Input
+"""
+input GRPS_ParticipantDeleteInput{
+    """
+    The source system, unique identifier for the Participant (GRPS ID)
+    """
+    grpsId: ID!
+    """
+    A moniker identifying the source backend service for this instance of a Participant.  This is a placeholder if
+    the same GRPS GQL schema is used for the variants and replicas of GRPS backend sources.
+    """
+    source: Source!
+}
 
 """
 Return type for createParticipant mutation
 """
 type GRPS_ParticipantMutationResult {
     """
-    The created Participant
+    The created or updated Participant
     """
     participant: GRPS_Participant
+    """
+    A list of checked errors that occurred executing the mutation
+    """
+    userErrors: [GRPS_UserError!]!
+}
+
+"""
+Return type for createParticipant mutation
+"""
+type GRPS_ParticipantDeleteResult {
+    """
+    The id of the deleted Participant
+    """
+    id: ID!
     """
     A list of checked errors that occurred executing the mutation
     """
@@ -829,6 +936,10 @@ type Mutation {
     Update a Participant
     """
     participantUpdate(input: GRPS_ParticipantInput!) : GRPS_ParticipantMutationResult
+    """
+    Delete a Participant
+    """
+    participantDelete(input: GRPS_ParticipantDeleteInput!) : GRPS_ParticipantDeleteResult
     """
     Add a Participant to a Group Participant
     """
